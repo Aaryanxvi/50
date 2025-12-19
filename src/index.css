@@ -80,3 +80,8 @@
 .bg-bloom {
   background: radial-gradient(circle at center, rgba(191, 149, 63, 0.05) 0%, transparent 70%);
 }
+
+.vertical-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { ArrowDown, Check, Send } from 'lucide-react';
+import { ArrowDown, Check, Send, Lock } from 'lucide-react';
+import { supabase } from './supabaseClient';
 
 // --- COMPONENTS ---
 
@@ -233,124 +234,365 @@ const Itinerary = () => {
     );
 };
 
-const Details = () => (
-    <section id="details" className="py-40 md:py-64 bg-bg px-6 relative border-t border-gold/10 overflow-hidden">
-        {/* Artistic Background Elements */}
-        <div className="absolute inset-0 bg-motif-organic pointer-events-none"></div>
-        <div className="absolute top-0 right-0 w-[60vw] h-[60vw] bg-bloom opacity-20 -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+const Chandelier = ({ scrollYProgress }: { scrollYProgress: any }) => {
+    const y = useTransform(scrollYProgress, [0, 1], [0, 300]);
+    const chainHeight = useTransform(scrollYProgress, [0, 1], [20, 320]); // Starts at 20px to connect, grows by 300px
 
-        {/* Large Decorative Vase Silhouette (SVG) */}
-        <div className="absolute -left-20 top-40 w-[400px] h-auto opacity-[0.03] pointer-events-none text-gold rotate-12">
-            <svg viewBox="0 0 200 400" className="w-full h-full fill-current">
-                <path d="M100,0 C120,0 140,20 140,50 L140,80 C140,120 180,150 180,220 C180,320 140,380 100,380 C60,380 20,320 20,220 C20,150 60,120 60,80 L60,50 C60,20 80,0 100,0 Z" />
-                <path d="M60,100 Q100,120 140,100" fill="none" stroke="currentColor" strokeWidth="1" />
-                <path d="M65,150 Q100,180 135,150" fill="none" stroke="currentColor" strokeWidth="0.5" />
-            </svg>
+    return (
+        <div className="absolute -top-20 -left-20 md:-left-10 w-[300px] md:w-[400px] z-20 pointer-events-none mix-blend-screen opacity-90">
+            {/* The Chain - Animated */}
+            <motion.div
+                style={{ height: chainHeight }}
+                className="absolute top-0 left-1/2 -translate-x-1/2 w-[2px] bg-gradient-to-b from-white/20 via-white/50 to-white/80 origin-top z-10"
+            ></motion.div>
+
+            {/* The Body - Animated */}
+            <motion.div style={{ y }} className="relative z-20">
+                {/* Illumination Glow - Golden */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gold/20 blur-[80px] rounded-full mix-blend-screen animate-pulse-slow"></div>
+
+                <img
+                    src="/assets/images/chandelier.png"
+                    alt="Chandelier"
+                    className="w-full h-auto drop-shadow-2xl"
+                    style={{
+                        // Using screen blend mode to make black background transparent while keeping white chandelier bright
+                        mixBlendMode: 'screen',
+                        filter: 'brightness(1.2) contrast(1.1)' // Slight boost to pop against black bg
+                    }}
+                />
+            </motion.div>
         </div>
+    );
+};
 
-        <div className="max-w-7xl mx-auto relative z-10">
-            <div className="flex flex-col lg:flex-row items-center gap-20 lg:gap-0">
+const Details = () => {
+    const ref = React.useRef(null);
+    const { scrollYProgress } = useScroll({
+        target: ref,
+        offset: ["start end", "end start"]
+    });
 
-                {/* Visual Anchor (Large Image with Overlay) */}
-                <div className="w-full lg:w-3/5 relative group">
-                    <div className="absolute -inset-8 border border-gold/10 pointer-events-none z-0 scale-95 group-hover:scale-100 transition-transform duration-1000"></div>
-                    <div className="aspect-[4/5] md:aspect-[16/10] lg:aspect-[4/3] overflow-hidden relative shadow-2xl">
-                        <img
-                            src="/assets/images/hero-bg-light.png"
-                            className="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-[3s] ease-out"
-                            style={{ filter: 'grayscale(100%) brightness(0.7) contrast(1.2) sepia(0.1)' }}
-                            alt="The Venue Vibe"
-                        />
-                        {/* Glassmorphism Badge */}
-                        <div className="absolute bottom-12 left-12 p-8 bg-bg/40 backdrop-blur-xl border border-gold/20 max-w-xs shadow-2xl">
-                            <span className="text-gold text-[10px] tracking-[0.6em] uppercase block mb-4">Location Highlight</span>
-                            <h4 className="text-2xl font-serif text-text mb-4">The Gallery at Bay 15</h4>
-                            <p className="text-text/50 text-xs font-light leading-relaxed">
-                                A stunning waterfront venue where Portuguese architecture meets the Arabian Sea.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+    return (
+        <section ref={ref} id="details" className="py-40 md:py-64 bg-black px-6 relative border-t border-gold/10 overflow-hidden">
+            {/* Atmospheric Layers removed for pure black background */}
 
-                {/* Content Overlay/Magazine Layout */}
-                <div className="w-full lg:w-2/5 lg:-ml-20 relative z-20">
-                    <motion.div
-                        initial={{ opacity: 0, x: 50 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        className="bg-[#0D0D0D] p-12 md:p-20 border border-gold/10 shadow-[50px_50px_100px_rgba(0,0,0,0.8)]"
-                    >
-                        <span className="text-gold-gradient text-xs tracking-[0.6em] uppercase block mb-8">The Experience</span>
-                        <h2 className="text-6xl md:text-8xl font-serif text-text mb-12 leading-[0.8] tracking-tighter">
-                            Arts of <br />
-                            <span className="text-gold italic font-light ml-8 md:ml-12">Leisure</span>
-                        </h2>
+            <Chandelier scrollYProgress={scrollYProgress} />
 
-                        <div className="flex gap-8 mb-16">
-                            <div className="w-[1px] h-24 bg-gradient-to-b from-gold/50 to-transparent"></div>
-                            <p className="text-text/60 text-lg md:text-xl font-light leading-relaxed">
-                                We've curated a stay that reflects the soulful <span className="text-gold/80 italic">susegad</span> spirit. Luxury, history, and the sea.
-                            </p>
-                        </div>
+            <div className="max-w-7xl mx-auto relative z-10">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-center">
 
-                        <div className="space-y-12">
-                            <div className="group cursor-default">
-                                <div className="flex justify-between items-end mb-4 border-b border-gold/10 pb-4 group-hover:border-gold/30 transition-colors">
-                                    <div>
-                                        <h5 className="font-serif text-2xl text-text/90 group-hover:text-gold transition-colors">Accommodation</h5>
-                                        <p className="text-[10px] tracking-widest text-text/30 uppercase mt-1">Preferential Rates</p>
-                                    </div>
-                                    <span className="text-2xl font-serif text-gold">₹6,000</span>
+                    {/* Left Column: Visual & Abstract */}
+                    <div className="lg:col-span-6 relative">
+                        <motion.div
+                            initial={{ opacity: 0, y: 100 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                            className="relative z-10 group"
+                        >
+                            {/* Elegant Frame Layer */}
+                            <div className="absolute -inset-4 md:-inset-8 border border-gold/20 pointer-events-none z-0"></div>
+
+                            <div className="aspect-[3/4] overflow-hidden relative shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)]">
+                                <img
+                                    src="/assets/images/venue-bay15.jpg"
+                                    className="w-full h-full object-cover transition-transform duration-[4s] ease-out group-hover:scale-105"
+                                    style={{ filter: 'grayscale(100%) brightness(0.7) contrast(1.2)' }}
+                                    alt="Venue Ambiance"
+                                />
+                                {/* In-image Caption */}
+                                <div className="absolute bottom-8 right-8 text-right">
+                                    <span className="text-[9px] tracking-[0.4em] uppercase text-gold/80 block mb-2">The Venue</span>
+                                    <p className="font-serif text-2xl text-white italic">Bay 15, Dona Paula</p>
                                 </div>
-                                <p className="text-text/40 text-xs font-light leading-relaxed">
-                                    Per night inclusive of breakfast & taxes. Managed by YouV Tours.
-                                </p>
                             </div>
 
-                            <div className="pt-8">
-                                <a
-                                    href="mailto:youvtours@gmail.com"
-                                    className="inline-flex items-center gap-6 group/link"
-                                >
-                                    <div className="w-12 h-12 rounded-full border border-gold/30 flex items-center justify-center group-hover/link:bg-gold transition-all duration-500">
-                                        <Send className="w-4 h-4 text-gold group-hover/link:text-bg transition-colors" />
+                            {/* Floating Decorative Element */}
+                            <div className="absolute -left-12 -bottom-12 w-32 h-32 border-l border-b border-gold/30 hidden md:block"></div>
+                        </motion.div>
+                    </div>
+
+                    {/* Right Column: Narrative & Info */}
+                    <div className="lg:col-span-6 relative">
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 1.2, delay: 0.2 }}
+                        >
+                            <header className="mb-12">
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="w-16 h-[1px] bg-gold"></div>
+                                    <span className="text-gold text-xs tracking-[0.4em] uppercase font-bold">The Esthetics</span>
+                                </div>
+                                <h2 className="text-5xl md:text-7xl font-serif text-white leading-none tracking-tight mb-8">
+                                    Pure <br />
+                                    <span className="italic font-light text-gold ml-12">Sophistication.</span>
+                                </h2>
+                                <p className="text-gray-400 text-lg font-light leading-relaxed max-w-md">
+                                    A curated experience where every detail is a <span className="text-gold italic font-serif">conversation</span> between tradition and modern luxury.
+                                </p>
+                            </header>
+
+                            <div className="space-y-12 border-l border-gold/20 pl-8 ml-2">
+                                <div className="group transition-all duration-500">
+                                    <h4 className="text-[10px] tracking-[0.3em] uppercase text-gold/60 mb-2">Accommodation</h4>
+                                    <h3 className="text-3xl font-serif text-white mb-3 group-hover:text-gold transition-colors">Bay 15</h3>
+                                    <p className="text-gray-500 text-sm font-light leading-relaxed mb-4 max-w-sm">
+                                        Accommodation available on a <span className="text-gold italic">first come, first serve</span> basis. Experience the waterfront charm with all modern comforts.
+                                    </p>
+                                    <div className="flex flex-col gap-1 mb-6">
+                                        <div className="flex items-baseline gap-3">
+                                            <span className="text-xl font-serif text-gold">₹6,000</span>
+                                            <span className="text-[10px] tracking-widest text-gray-600 uppercase">(Approx. $100) / Night</span>
+                                        </div>
+                                        <span className="text-[9px] tracking-widest text-text/30 uppercase">+ taxes, including breakfast</span>
                                     </div>
-                                    <span className="text-text uppercase tracking-[0.4em] text-[10px] font-bold border-b border-gold/20 pb-1">Inquire via Email</span>
-                                </a>
+                                </div>
+
+                                <div className="pt-8 border-t border-gold/10">
+                                    <h4 className="text-[10px] tracking-[0.3em] uppercase text-gold/60 mb-2">Travel & Tours</h4>
+                                    <p className="text-gray-500 text-sm font-light leading-relaxed mb-4 max-w-sm">
+                                        For bookings for tours in India (Golden Triangle etc.), internal flights, or transfers, please contact <span className="text-white font-serif italic">Vikas from YouV Tours</span>.
+                                    </p>
+                                    <p className="text-[10px] text-gold/80 tracking-widest uppercase mb-6">
+                                        Reference: "Yemee Fernandes"
+                                    </p>
+                                    <a
+                                        href="mailto:youvtours@gmail.com"
+                                        className="group/btn relative inline-flex items-center gap-6 py-2"
+                                    >
+                                        <div className="w-12 h-12 rounded-full border border-gold/30 flex items-center justify-center transition-all duration-500 group-hover/btn:bg-gold group-hover/btn:border-gold">
+                                            <Send className="w-4 h-4 text-gold group-hover/btn:text-black transition-colors" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-white uppercase tracking-[0.2em] text-[10px] font-bold">Inquire Booking</span>
+                                            <span className="text-gray-600 text-[9px] tracking-widest uppercase mt-0.5 transition-colors group-hover/btn:text-gold">youvtours@gmail.com</span>
+                                        </div>
+                                    </a>
+                                </div>
                             </div>
-                        </div>
-                    </motion.div>
+                        </motion.div>
+                    </div>
+
                 </div>
             </div>
-        </div>
-    </section>
-);
 
+            {/* Floating Background Accents */}
+            <div className="absolute bottom-20 right-10 w-64 h-64 border border-gold/5 rounded-full blur-3xl pointer-events-none"></div>
+        </section>
+    );
+};
+
+
+const AdminDashboard = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+    const [email, setEmail] = useState('');
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [attendees, setAttendees] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        const allowedEmails = [
+            'yemee.fernandes@fourpillarstrading.com',
+            'aaryanbaadkar71@gmail.com'
+        ];
+
+        if (allowedEmails.includes(email.trim().toLowerCase())) {
+            setIsLoggedIn(true);
+            await fetchAttendees();
+        } else {
+            setError('Unauthorized access.');
+        }
+        setLoading(false);
+    };
+
+    const fetchAttendees = async () => {
+        setLoading(true);
+        const { data, error } = await supabase
+            .from('rsvp')
+            .select('*')
+            .eq('attending', 'Honoured to attend')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching attendees:', error);
+            setError('Failed to fetch data.');
+        } else {
+            setAttendees(data || []);
+        }
+        setLoading(false);
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+            <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" onClick={onClose}></div>
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="relative z-10 w-full max-w-5xl bg-[#0a0a0a] border border-gold/20 p-8 md:p-12 shadow-2xl max-h-[90vh] overflow-y-auto"
+            >
+                <button onClick={onClose} className="absolute top-6 right-6 text-gold/50 hover:text-gold transition-colors text-xs uppercase tracking-widest">
+                    Close
+                </button>
+
+                {!isLoggedIn ? (
+                    <div className="max-w-md mx-auto text-center py-10">
+                        <Lock className="w-8 h-8 text-gold/50 mx-auto mb-6" />
+                        <h2 className="font-serif text-3xl text-gold mb-2">Admin Access</h2>
+                        <p className="text-text/40 text-[10px] tracking-widest uppercase mb-8">Restricted Area</p>
+                        <form onSubmit={handleLogin} className="space-y-6">
+                            <div>
+                                <input
+                                    type="email"
+                                    placeholder="Enter Admin Email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full bg-transparent border-b border-gold/20 py-3 text-text focus:border-gold outline-none transition-colors text-center placeholder:text-text/20"
+                                />
+                            </div>
+                            {error && <p className="text-red-500 text-[10px] tracking-widest uppercase">{error}</p>}
+                            <button type="submit" className="bg-gold text-black px-8 py-3 uppercase tracking-widest text-xs font-bold hover:bg-white transition-colors">
+                                {loading ? 'Verifying...' : 'Login'}
+                            </button>
+                        </form>
+                    </div>
+                ) : (
+                    <div>
+                        <div className="flex flex-col md:flex-row justify-between items-end mb-12 border-b border-gold/20 pb-6 gap-6">
+                            <div>
+                                <span className="text-gold text-xs tracking-[0.4em] uppercase block mb-2">Guest List</span>
+                                <h2 className="font-serif text-3xl text-white">Honoured to Attend</h2>
+                            </div>
+                            <div className="text-right flex items-center gap-8">
+                                <button onClick={fetchAttendees} className="text-[10px] uppercase tracking-widest text-gold/50 hover:text-gold">Refresh</button>
+                                <div>
+                                    <p className="text-gold text-3xl font-serif leading-none">{attendees.length}</p>
+                                    <p className="text-text/40 text-[9px] tracking-widest uppercase mt-1">Confirmed</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {loading ? (
+                            <p className="text-center text-gold/50 animate-pulse py-12">Loading data...</p>
+                        ) : attendees.length === 0 ? (
+                            <p className="text-center text-text/30 py-12 italic font-serif">No responses yet.</p>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse min-w-[800px]">
+                                    <thead>
+                                        <tr className="border-b border-gold/10 text-gold/50 text-[10px] uppercase tracking-widest">
+                                            <th className="py-4 font-normal w-[20%]">Name</th>
+                                            <th className="py-4 font-normal w-[25%]">Email</th>
+                                            <th className="py-4 font-normal text-center w-[10%]">Guests</th>
+                                            <th className="py-4 font-normal w-[20%]">Dietary</th>
+                                            <th className="py-4 font-normal w-[25%]">Note</th>
+                                            <th className="py-4 font-normal text-right">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="text-text/80 text-sm font-light">
+                                        {attendees.map((person) => (
+                                            <tr key={person.id} className="border-b border-gold/5 hover:bg-gold/[0.02] transition-colors group">
+                                                <td className="py-4 pr-4 font-medium text-gold/90">{person.full_name}</td>
+                                                <td className="py-4 pr-4 text-text/60">{person.email}</td>
+                                                <td className="py-4 px-4 text-center">{person.guests_count}</td>
+                                                <td className="py-4 pr-4 text-text/60">{person.dietary_requirements || '-'}</td>
+                                                <td className="py-4 text-text/60 italic max-w-xs truncate group-hover:whitespace-normal group-hover:overflow-visible group-hover:bg-[#0a0a0a] group-hover:z-10 relative">{person.note || '-'}</td>
+                                                <td className="py-4 text-right text-[10px] text-text/30 uppercase tracking-wider">
+                                                    {new Date(person.created_at).toLocaleDateString()}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </motion.div>
+        </div>
+    );
+};
+
+const InputField = ({ label, type = "text", placeholder = "", id, value, onChange, focusedField, setFocusedField }: any) => (
+    <div className="relative mb-12 group">
+        <label
+            htmlFor={id}
+            className={`absolute left-0 transition-all duration-500 pointer-events-none font-sans ${focusedField === id || value
+                ? '-top-8 text-[10px] text-gold tracking-[0.4em] uppercase'
+                : 'top-2 text-text/30 text-sm tracking-widest'
+                }`}
+        >
+            {label}
+        </label>
+        <input
+            type={type}
+            id={id}
+            value={value}
+            onChange={onChange}
+            placeholder={focusedField === id ? placeholder : ''}
+            className="w-full bg-transparent border-b border-gold/10 py-3 text-text/90 focus:outline-none focus:border-gold transition-colors duration-500 font-sans text-sm"
+            onFocus={() => setFocusedField(id)}
+            onBlur={() => setFocusedField(null)}
+            required={id === 'name' || id === 'email'}
+        />
+    </div>
+);
 
 const RSVPForm = () => {
     const [focusedField, setFocusedField] = useState<string | null>(null);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        attendance: 'Honoured to attend',
+        guests: '1',
+        diet: '',
+        note: ''
+    });
+    const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
-    const InputField = ({ label, type = "text", placeholder = "", id }: any) => (
-        <div className="relative mb-12 group">
-            <label
-                htmlFor={id}
-                className={`absolute left-0 transition-all duration-500 pointer-events-none font-sans ${focusedField === id || (document.getElementById(id) as HTMLInputElement)?.value
-                    ? '-top-8 text-[10px] text-gold tracking-[0.4em] uppercase'
-                    : 'top-2 text-text/30 text-sm tracking-widest'
-                    }`}
-            >
-                {label}
-            </label>
-            <input
-                type={type}
-                id={id}
-                placeholder={focusedField === id ? placeholder : ''}
-                className="w-full bg-transparent border-b border-gold/10 py-3 text-text/90 focus:outline-none focus:border-gold transition-colors duration-500 font-sans text-sm"
-                onFocus={() => setFocusedField(id)}
-                onBlur={(e) => !e.target.value && setFocusedField(null)}
-            />
-        </div>
-    );
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setFormData({ ...formData, [e.target.id || e.target.name]: e.target.value });
+    };
+
+    const handleRadioChange = (value: string) => {
+        setFormData({ ...formData, attendance: value });
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setStatus('submitting');
+
+        try {
+            const { error } = await supabase.from('rsvp').insert([
+                {
+                    full_name: formData.name,
+                    email: formData.email,
+                    attending: formData.attendance,
+                    guests_count: parseInt(formData.guests),
+                    dietary_requirements: formData.diet,
+                    note: formData.note
+                }
+            ]);
+
+            if (error) throw error;
+            setStatus('success');
+            setFormData({ name: '', email: '', attendance: 'Honoured to attend', guests: '1', diet: '', note: '' });
+        } catch (error) {
+            console.error('Error submitting RSVP:', error);
+            setStatus('error');
+        }
+    };
+
+
 
     return (
         <section id="rsvp" className="py-40 px-6 bg-[#030303] relative border-t border-gold/10">
@@ -362,56 +604,99 @@ const RSVPForm = () => {
                     <div className="w-12 h-[1px] bg-gold/30 mx-auto mt-12"></div>
                 </div>
 
-                <form className="space-y-4">
-                    <div className="grid md:grid-cols-2 gap-x-12">
-                        <InputField label="Full Name" id="name" placeholder="John Doe" />
-                        <InputField label="Email Address" id="email" type="email" placeholder="john@example.com" />
-                    </div>
-
-                    <div className="mb-16">
-                        <label className="block text-[10px] text-gold/50 tracking-[0.5em] uppercase mb-8">Will you be attending?</label>
-                        <div className="flex gap-12">
-                            <label className="flex items-center gap-4 cursor-pointer group">
-                                <input type="radio" name="attendance" className="peer sr-only" />
-                                <div className="w-6 h-6 border border-gold/20 rounded-none peer-checked:bg-gold transition-all relative flex items-center justify-center">
-                                    <div className="w-2.5 h-2.5 bg-bg opacity-0 peer-checked:opacity-100 transition-opacity"></div>
-                                </div>
-                                <span className="text-text/50 group-hover:text-text transition-colors text-xs tracking-widest uppercase">Honoured to attend</span>
-                            </label>
-                            <label className="flex items-center gap-4 cursor-pointer group">
-                                <input type="radio" name="attendance" className="peer sr-only" />
-                                <div className="w-6 h-6 border border-gold/20 rounded-none peer-checked:bg-text relative flex items-center justify-center">
-                                    <div className="w-2.5 h-2.5 bg-bg opacity-0 peer-checked:opacity-100 transition-opacity"></div>
-                                </div>
-                                <span className="text-text/50 group-hover:text-text transition-colors text-xs tracking-widest uppercase">Regretfully decline</span>
-                            </label>
+                {status === 'success' ? (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-gold/5 border border-gold/20 p-12 text-center"
+                    >
+                        <Check className="w-12 h-12 text-gold mx-auto mb-6" />
+                        <h3 className="font-serif text-3xl text-white mb-4">Thank You</h3>
+                        <p className="text-text/60 font-light">Your response has been recorded.</p>
+                        <button
+                            onClick={() => setStatus('idle')}
+                            className="mt-8 text-[10px] uppercase tracking-widest text-gold hover:text-white transition-colors"
+                        >
+                            Send another response
+                        </button>
+                    </motion.div>
+                ) : (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="grid md:grid-cols-2 gap-x-12">
+                            <InputField label="Full Name" id="name" placeholder="John Doe" value={formData.name} onChange={handleChange} focusedField={focusedField} setFocusedField={setFocusedField} />
+                            <InputField label="Email Address" id="email" type="email" placeholder="john@example.com" value={formData.email} onChange={handleChange} focusedField={focusedField} setFocusedField={setFocusedField} />
                         </div>
-                    </div>
 
-                    <div className="grid md:grid-cols-2 gap-x-12">
-                        <InputField label="Number of Guests" id="guests" type="number" placeholder="1" />
-                        <InputField label="Dietary Requirements" id="diet" placeholder="Vegetarian, allergies..." />
-                    </div>
+                        <div className="mb-16">
+                            <label className="block text-[10px] text-gold/50 tracking-[0.5em] uppercase mb-8">Will you be attending?</label>
+                            <div className="flex gap-12">
+                                <label className="flex items-center gap-4 cursor-pointer group">
+                                    <input
+                                        type="radio"
+                                        name="attendance"
+                                        className="peer sr-only"
+                                        checked={formData.attendance === 'Honoured to attend'}
+                                        onChange={() => handleRadioChange('Honoured to attend')}
+                                    />
+                                    <div className="w-6 h-6 border border-gold/20 rounded-none peer-checked:bg-gold transition-all relative flex items-center justify-center">
+                                        <div className="w-2.5 h-2.5 bg-bg opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                                    </div>
+                                    <span className={`text-xs tracking-widest uppercase transition-colors ${formData.attendance === 'Honoured to attend' ? 'text-text' : 'text-text/50 group-hover:text-text'}`}>Honoured to attend</span>
+                                </label>
+                                <label className="flex items-center gap-4 cursor-pointer group">
+                                    <input
+                                        type="radio"
+                                        name="attendance"
+                                        className="peer sr-only"
+                                        checked={formData.attendance === 'Regretfully decline'}
+                                        onChange={() => handleRadioChange('Regretfully decline')}
+                                    />
+                                    <div className="w-6 h-6 border border-gold/20 rounded-none peer-checked:bg-text relative flex items-center justify-center">
+                                        <div className="w-2.5 h-2.5 bg-bg opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                                    </div>
+                                    <span className={`text-xs tracking-widest uppercase transition-colors ${formData.attendance === 'Regretfully decline' ? 'text-text' : 'text-text/50 group-hover:text-text'}`}>Regretfully decline</span>
+                                </label>
+                            </div>
+                        </div>
 
-                    <div className="relative mb-20 group">
-                        <label className="block text-[10px] text-gold/50 tracking-[0.5em] uppercase mb-4">A Note for the Hostess</label>
-                        <textarea
-                            className="w-full bg-gold/[0.02] border border-gold/10 p-6 text-text/80 focus:outline-none focus:border-gold transition-colors duration-500 font-sans min-h-[150px] resize-none text-sm placeholder:text-text/10"
-                            placeholder="Share your wishes or questions..."
-                        ></textarea>
-                    </div>
+                        <div className="grid md:grid-cols-2 gap-x-12">
+                            <InputField label="Number of Guests" id="guests" type="number" placeholder="1" value={formData.guests} onChange={handleChange} focusedField={focusedField} setFocusedField={setFocusedField} />
+                            <InputField label="Dietary Requirements" id="diet" placeholder="Vegetarian, allergies..." value={formData.diet} onChange={handleChange} focusedField={focusedField} setFocusedField={setFocusedField} />
+                        </div>
 
-                    <button className="w-full bg-gold hover:bg-gold-light text-bg uppercase tracking-[0.4em] py-6 text-xs font-bold transition-all duration-700 relative group overflow-hidden shadow-2xl">
-                        <span className="relative z-10">Submit Response</span>
-                        <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-[1.5s] ease-in-out"></div>
-                    </button>
-                </form>
+                        <div className="relative mb-20 group">
+                            <label className="block text-[10px] text-gold/50 tracking-[0.5em] uppercase mb-4">A Note for the Hostess</label>
+                            <textarea
+                                id="note"
+                                value={formData.note}
+                                onChange={handleChange}
+                                className="w-full bg-gold/[0.02] border border-gold/10 p-6 text-text/80 focus:outline-none focus:border-gold transition-colors duration-500 font-sans min-h-[150px] resize-none text-sm placeholder:text-text/10"
+                                placeholder="Share your wishes or questions..."
+                            ></textarea>
+                        </div>
+
+                        {status === 'error' && (
+                            <div className="mb-8 p-4 bg-red-900/20 border border-red-900/50 text-red-400 text-xs text-center uppercase tracking-widest">
+                                Something went wrong. Please try again.
+                            </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={status === 'submitting'}
+                            className="w-full bg-gold hover:bg-gold-light text-bg uppercase tracking-[0.4em] py-6 text-xs font-bold transition-all duration-700 relative group overflow-hidden shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <span className="relative z-10">{status === 'submitting' ? 'Sending...' : 'Submit Response'}</span>
+                            <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-[1.5s] ease-in-out"></div>
+                        </button>
+                    </form>
+                )}
             </div>
         </section>
     );
 };
 
-const Footer = () => (
+const Footer = ({ onAdminClick }: { onAdminClick: () => void }) => (
     <footer className="py-20 bg-bg border-t border-gold/10 text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-grain opacity-[0.02] pointer-events-none"></div>
         <div className="max-w-xs mx-auto mb-10">
@@ -420,13 +705,20 @@ const Footer = () => (
             <div className="text-[10px] tracking-[1em] text-gold/40 uppercase mb-10 ml-[1em]">Golden Jubilee</div>
             <div className="w-full h-[1px] bg-gold/20"></div>
         </div>
-        <p className="text-text/30 text-[9px] tracking-[0.6em] uppercase">&copy; 2026 / Yemee Fernandes 50th / Goa</p>
+        <div className="flex flex-col items-center gap-4">
+            <p className="text-text/30 text-[9px] tracking-[0.6em] uppercase">&copy; 2026 / Yemee Fernandes 50th / Goa</p>
+            <button key="admin-btn" onClick={onAdminClick} className="text-text/10 hover:text-gold/50 text-[8px] uppercase tracking-widest transition-colors pt-4">
+                Admin
+            </button>
+        </div>
     </footer>
 );
 
 // --- MAIN APP ---
 
 function App() {
+    const [isAdminOpen, setIsAdminOpen] = useState(false);
+
     return (
         <main className="bg-bg text-text selection:bg-gold/20">
             <Navigation />
@@ -435,7 +727,10 @@ function App() {
             <Itinerary />
             <Details />
             <RSVPForm />
-            <Footer />
+            <Footer onAdminClick={() => setIsAdminOpen(true)} />
+            <AnimatePresence>
+                {isAdminOpen && <AdminDashboard isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)} />}
+            </AnimatePresence>
         </main>
     );
 }
