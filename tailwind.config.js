@@ -7,15 +7,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: '#FAF9F6',       // Off-White / Alabaster
-        text: '#2A2A2A',     // Warm Charcoal (less blue)
+        bg: '#0A0A0A',       // Deep Vintage Black
+        text: '#F5F2ED',     // Antique White
+        sun: '#BF953F',      // Metallic Gold
         gold: {
-          DEFAULT: '#C5A059', // Champagne Gold
-          light: '#E0C080',   // Pale Gold
-          dark: '#997B44',    // Antique Bronze
+          DEFAULT: '#BF953F',
+          light: '#FCF6BA',  // Gold Shine
+          dark: '#8A6E2F',   // Deep Gold
         },
-        sand: '#EFE6D5',     // Pale Sand
-        ocean: '#5D7572',    // Deep Muted Teal
+        sand: '#2A2A2A',     // Darker Gray for contrast
+        ocean: '#1A1A1A',
       },
       fontFamily: {
         serif: ['"Playfair Display"', 'serif'],
