@@ -55,12 +55,18 @@ const images = [
 const Gallery = () => {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [isMobile, setIsMobile] = useState(false);
+    const [isPhone, setIsPhone] = useState(false);
 
     useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 768);
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
+        const checkScreenSize = () => {
+            const width = window.innerWidth;
+            setIsMobile(width < 768);
+            // Phone = under 768px, iPad/laptop = 768px and above
+            setIsPhone(width < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
 
     // Consistently seeded random helper
@@ -68,6 +74,9 @@ const Gallery = () => {
         const x = Math.sin(seed++) * 10000;
         return x - Math.floor(x);
     };
+
+    // Get all unique images for the grid layout
+    const allImages = useMemo(() => Array.from(new Set(images)), []);
 
     const scatteredImagesData = useMemo(() => {
         // Deduplicate images first
@@ -82,25 +91,15 @@ const Gallery = () => {
             const index = i + 12; // Start slightly further out
 
             // Distance from center (radius)
-            let distance = Math.sqrt(index) * 150;
+            const distance = Math.sqrt(index) * 150;
 
             const theta = index * phi * (Math.PI / 180);
 
-            let x = Math.cos(theta) * distance;
-            let y = Math.sin(theta) * distance;
+            const x = Math.cos(theta) * distance;
+            const y = Math.sin(theta) * distance;
 
             const rotate = (seededRandom(i * 789) * 30) - 15;
             const scale = 0.85 + (seededRandom(i * 101) * 0.3);
-
-            // MOBILE ADJUSTMENT: Push images away from the center column
-            if (isMobile) {
-                // If the image is horizontally too close to the center (where the column is)
-                // Push it out.
-                if (Math.abs(x) < 350) {
-                    // Push outwards horizontally based on which side it's already on
-                    x = x >= 0 ? x + 350 : x - 350;
-                }
-            }
 
             return {
                 src: img,
@@ -111,20 +110,107 @@ const Gallery = () => {
                 zIndex: Math.floor(seededRandom(i * 111) * 30),
             };
         });
-    }, [isMobile]);
+    }, []);
 
-    const featuredImages = isMobile
-        ? [
-            { src: "/gallery/featured-1.png", x: 0, y: -380, rotate: -3, z: 40, label: "Featured Top" },
-            { src: "/assets/images/hero-vintage-baby.png", x: 0, y: 0, rotate: 0, z: 50, label: "Hero Center" },
-            { src: "/gallery/featured-2.png", x: 0, y: 380, rotate: 3, z: 40, label: "Featured Bottom" },
-        ]
-        : [
-            { src: "/gallery/featured-1.png", x: -320, y: 50, rotate: -6, z: 40, label: "Featured Left" },
-            { src: "/assets/images/hero-vintage-baby.png", x: 0, y: -20, rotate: 2, z: 50, label: "Hero Center" },
-            { src: "/gallery/featured-2.png", x: 320, y: 50, rotate: 5, z: 40, label: "Featured Right" },
-        ];
+    const featuredImages = [
+        { src: "/gallery/featured-1.png", x: -320, y: 50, rotate: -6, z: 40, label: "Featured Left" },
+        { src: "/assets/images/hero-vintage-baby.png", x: 0, y: -20, rotate: 2, z: 50, label: "Hero Center" },
+        { src: "/gallery/featured-2.png", x: 320, y: 50, rotate: 5, z: 40, label: "Featured Right" },
+    ];
 
+    // MOBILE GRID LAYOUT - Normal collage for phones
+    if (isPhone) {
+        return (
+            <section className="py-12 bg-[#080808] relative overflow-hidden border-t border-gold/10">
+                {/* Texture */}
+                <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-grain mix-blend-overlay"></div>
+
+                <div className="text-center z-30 w-full mb-8 px-4">
+                    <span className="text-gold text-xs tracking-[0.4em] uppercase block mb-3">Timeless Moments</span>
+                    <h2 className="text-3xl font-serif text-text italic font-light drop-shadow-lg">The Gallery</h2>
+                </div>
+
+                {/* Featured Images Row */}
+                <div className="px-4 mb-6">
+                    <div className="grid grid-cols-3 gap-2">
+                        {featuredImages.map((img, index) => (
+                            <motion.div
+                                key={`featured-mobile-${index}`}
+                                className="bg-white p-1 shadow-lg cursor-pointer"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => setSelectedImage(img.src)}
+                            >
+                                <div className="aspect-[3/4] overflow-hidden bg-black">
+                                    <img
+                                        src={img.src}
+                                        alt={img.label}
+                                        className="w-full h-full object-cover"
+                                        loading="lazy"
+                                    />
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Grid Collage */}
+                <div className="px-4">
+                    <div className="grid grid-cols-3 gap-2">
+                        {allImages.map((img, i) => (
+                            <motion.div
+                                key={`grid-${i}`}
+                                className="bg-white p-1 shadow-md cursor-pointer group"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => setSelectedImage(img)}
+                            >
+                                <div className="aspect-square overflow-hidden bg-gray-100">
+                                    <img
+                                        src={`/gallery/${img}`}
+                                        alt="Memory"
+                                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300"
+                                        loading="lazy"
+                                    />
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+
+                <AnimatePresence>
+                    {selectedImage && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedImage(null)}
+                            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 px-4 backdrop-blur-md"
+                        >
+                            <button
+                                onClick={() => setSelectedImage(null)}
+                                className="absolute top-6 right-6 text-gold/50 hover:text-gold transition-colors"
+                            >
+                                <X size={32} />
+                            </button>
+                            <motion.img
+                                src={selectedImage.startsWith('/') ? selectedImage : `/gallery/${selectedImage}`}
+                                alt="Selected memory"
+                                className="max-h-[85vh] max-w-[90vw] object-contain shadow-2xl border-[8px] border-white/90"
+                                initial={{ scale: 0.9 }}
+                                animate={{ scale: 1 }}
+                                exit={{ scale: 0.9 }}
+                                transition={{ type: "spring", damping: 25 }}
+                                onClick={(e) => e.stopPropagation()}
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </section>
+        );
+    }
+
+    // TABLET/DESKTOP CIRCULAR LAYOUT - Original scattered layout for iPad and laptop
     return (
         <section className="py-20 bg-[#080808] relative overflow-hidden min-h-[1600px] flex flex-col items-center justify-center border-t border-gold/10">
             {/* Texture */}
@@ -140,7 +226,7 @@ const Gallery = () => {
 
             <div className="relative w-full h-[1400px] flex items-center justify-center overflow-hidden translate-y-[100px]">
                 {/* Scaled container to fit the large scattered arrangement */}
-                <div className="relative w-[2400px] h-[2400px] flex items-center justify-center scale-[0.35] md:scale-[0.45] lg:scale-[0.55] origin-center transition-transform duration-1000">
+                <div className="relative w-[2400px] h-[2400px] flex items-center justify-center scale-[0.45] lg:scale-[0.55] origin-center transition-transform duration-1000">
 
                     {/* SCATTERED BACKGROUND IMAGES */}
                     {scatteredImagesData.map((img, i) => (
@@ -156,7 +242,7 @@ const Gallery = () => {
                             whileHover={{
                                 scale: 1.3,
                                 rotate: 0,
-                                zIndex: 100, // Force top on hover
+                                zIndex: 100,
                                 transition: { duration: 0.2 }
                             }}
                             onClick={() => setSelectedImage(img.src)}
